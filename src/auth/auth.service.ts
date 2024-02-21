@@ -3,6 +3,7 @@ import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
+import { EmailRegisterDto } from './dto/email-register.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,5 +30,13 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async register(data: EmailRegisterDto) {
+    return this.userService.createUser({
+      email: data.email,
+      name: data.name,
+      password: data.password,
+    });
   }
 }

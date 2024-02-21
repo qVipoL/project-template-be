@@ -1,7 +1,8 @@
-import { Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
+import { EmailRegisterDto } from './dto/email-register.dto';
 
 @ApiTags('Auth (Public)')
 @Controller('auth')
@@ -27,5 +28,10 @@ export class AuthController {
   @Post('login')
   async login(@Request() req) {
     return this.authService.login(req.user);
+  }
+
+  @Post('register')
+  async register(@Body() data: EmailRegisterDto) {
+    return this.authService.register(data);
   }
 }
