@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 import {
   ArrayMinSize,
   IsArray,
@@ -26,5 +27,5 @@ export class CreateUserDto {
   @IsArray()
   @IsString({ each: true })
   @ArrayMinSize(1)
-  readonly roles?: string[];
+  readonly roles?: Role[];
 }

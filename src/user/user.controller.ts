@@ -1,13 +1,17 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
-  UseGuards,
+  Query,
+  Request,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from '@prisma/client';
@@ -15,6 +19,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { HasRoles } from 'src/auth/decorators/has-roles.decorator';
+import { Response } from 'express';
+import { exclude, excludeFromArray } from 'src/utils/helpers';
 
 @ApiTags('User (Protected)')
 @HasRoles('ADMIN')
@@ -23,25 +29,40 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  findAll(): Promise<User[]> {
-    return this.userService.users({});
+  async findAll(
+    @Query('_start', ParseIntPipe) _start: number,
+    @Query('_end', ParseIntPipe) _end: number,
+    @Res() response: Response,
+  ) {
+    const totalUsers = await this.userService.count({});
+    response.set('x-total-count', totalUsers.toString());
+
+    const users = await this.userService.users({
+      skip: _start,
+      take: _end - _start,
+    });
+
+    const result = excludeFromArray(users, ['password']);
+
+    return response.json(result);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<User | null> {
-    return this.userService.user({ id });
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.userService.user({ id });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return exclude(user, ['password']);
   }
 
   @Post()
-  create(@Body() data: CreateUserDto): Promise<User> {
+  create(@Body() data: CreateUserDto) {
     return this.userService.createUser(data);
   }
 
-  @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdateUserDto,
-  ): Promise<User> {
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto) {
     return this.userService.updateUser({
       where: { id },
       data,
@@ -49,7 +70,12 @@ export class UserController {
   }
 
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number): Promise<User> {
+  delete(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const { user } = req;
+
+    if (user.id === id)
+      throw new BadRequestException('You cannot delete yourself');
+
     return this.userService.deleteUser({ id });
   }
 }

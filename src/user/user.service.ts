@@ -47,6 +47,11 @@ export class UserService implements OnModuleInit {
     });
   }
 
+  async count(params: { where?: Prisma.UserWhereInput }): Promise<number> {
+    const { where } = params;
+    return this.prisma.user.count({ where });
+  }
+
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
     const user = await this.user({
       email: data.email,
