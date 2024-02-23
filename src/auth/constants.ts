@@ -1,3 +1,5 @@
+import { config } from 'src/config';
+
 export const jwtConstants = {
-  secret: process.env.JWT_SECRET || 'jwt-secret-key',
+  secret: config.JWT_SECRET || 'jwt-secret-key',
 };
