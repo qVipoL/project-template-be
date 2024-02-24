@@ -23,6 +23,10 @@ export class FileService {
 
     if (!response.data) throw new BadRequestException('Failed to upload file');
 
-    return response.data;
+    const { url } = response.data;
+
+    return {
+      url,
+    };
   }
 }

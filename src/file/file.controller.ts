@@ -8,11 +8,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { HasRoles } from 'src/auth/decorators/has-roles.decorator';
 import { FileService } from './file.service';
 
 @ApiTags('Files (Protected)')
-@HasRoles('ADMIN')
 @Controller('file')
 export class FileController {
   constructor(private fileService: FileService) {}
