@@ -14,13 +14,14 @@ import {
   Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { HasRoles } from 'src/auth/decorators/has-roles.decorator';
 import { Response } from 'express';
 import { exclude, excludeFromArray } from 'src/utils/helpers';
+import { ParseOptionalIntPipe } from 'src/pipes/parse-optional-int.pipe';
+import { Prisma, Role } from '@prisma/client';
 
 @ApiTags('User (Protected)')
 @HasRoles('ADMIN')
@@ -30,16 +31,32 @@ export class UserController {
 
   @Get()
   async findAll(
+    @Res() response: Response,
     @Query('_start', ParseIntPipe) _start: number,
     @Query('_end', ParseIntPipe) _end: number,
-    @Res() response: Response,
+    @Query('id', ParseOptionalIntPipe) id?: number,
+    @Query('name') name?: string,
+    @Query('email') email?: string,
+    @Query('roles') roles?: Role[] | Role,
   ) {
-    const totalUsers = await this.userService.count({});
+    const filters: Prisma.UserWhereInput = {
+      id: id ? id : undefined,
+      name: name ? { contains: name } : undefined,
+      email: email ? { contains: email } : undefined,
+      roles: roles
+        ? { hasEvery: Array.isArray(roles) ? roles : [roles] }
+        : undefined,
+    };
+
+    const totalUsers = await this.userService.count({
+      where: filters,
+    });
     response.set('x-total-count', totalUsers.toString());
 
     const users = await this.userService.users({
       skip: _start,
       take: _end - _start,
+      where: filters,
     });
 
     const result = excludeFromArray(users, ['password']);
