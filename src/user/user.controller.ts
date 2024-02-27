@@ -16,7 +16,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { HasRoles } from 'src/auth/decorators/has-roles.decorator';
 import { Response } from 'express';
 import { exclude, excludeFromArray } from 'src/utils/helpers';
@@ -30,6 +30,11 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @ApiQuery({ name: '_start', required: true, type: Number })
+  @ApiQuery({ name: '_end', required: true, type: Number })
+  @ApiQuery({ name: 'id', required: false, type: Number })
+  @ApiQuery({ name: 'name', required: false, type: String })
+  @ApiQuery({ name: 'email', required: false, type: String })
   async findAll(
     @Res() response: Response,
     @Query('_start', ParseIntPipe) _start: number,
