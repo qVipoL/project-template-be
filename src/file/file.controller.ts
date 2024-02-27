@@ -10,7 +10,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FileService } from './file.service';
 
-@ApiTags('Files (Protected)')
+@ApiTags('Files (Public)')
 @Controller('file')
 export class FileController {
   constructor(private fileService: FileService) {}
